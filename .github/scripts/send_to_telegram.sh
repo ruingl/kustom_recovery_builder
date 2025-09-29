@@ -10,6 +10,24 @@ DEVICE_TREE="$6"
 CHAT_ID="$7"
 TOKEN="$8"
 
+send_file() {
+  local FILE_PATH="$1"
+  local CAPTION="$2"
+
+  if [[ ! -f "$FILE_PATH" ]]; then
+    echo "⚠️ Skipping: $FILE_PATH (not found)"
+    return 0
+  fi
+
+  echo "📤 Uploading: $FILE_PATH"
+  curl -s -X POST "https://api.telegram.org/bot${TOKEN}/sendDocument" \
+    -F chat_id="${CHAT_ID}" \
+    -F document=@"${FILE_PATH}" \
+    -F caption="${CAPTION}" \
+    -F parse_mode="MarkdownV2"
+}
+
+# === Send massage ===
 text=$(
   cat << EOF
 🚀 *Unofficial TWRP Build Released*
@@ -25,3 +43,10 @@ curl -s -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
   -d chat_id="$CHAT_ID" \
   -d text="$text" \
   -d parse_mode="MarkdownV2"
+
+# === Try sending all possible artifacts ===
+OUTDIR="android-recovery/out/target/product/${DEVICE}"
+
+send_file "${OUTDIR}/boot.img" "📦 *Build Artifact*: \`boot.img\` for *${DEVICE}*"
+send_file "${OUTDIR}/recovery.img" "📦 *Build Artifact*: \`recovery.img\` for *${DEVICE}*"
+send_file "${OUTDIR}/vendor_boot.img" "📦 *Build Artifact*: \`vendor_boot.img\` for *${DEVICE}*"

@@ -205,7 +205,7 @@ jobs:
         RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         RELEASE_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.run_id }}"
 
-        # send massage
+        # Prettified message (MarkdownV2 requires escaping)
         MESSAGE="🚀 *Unofficial TWRP Build Released*\n\n"\
 "📱 *Device:* \`${DEVICE}\`\n"\
 "🌿 *Branch:* \`${BRANCH}\`\n"\
@@ -213,11 +213,11 @@ jobs:
 "🔗 [View Release on GitHub](${RELEASE_URL})\n"\
 "📝 *Commit:* [${COMMIT_ID}](${{ github.event.inputs.DEVICE_TREE }}/commit/${COMMIT_ID})"
 
-        # Send text first
-        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
-          -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+        # Send text
+        curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
           -d text="$MESSAGE" \
-          -d parse_mode=MarkdownV2
+          -d parse_mode="MarkdownV2"
 
         # Detect output image path
         if [ "${{ github.event.inputs.BUILD_TARGET }}" = "vendorboot" ]; then
@@ -227,8 +227,9 @@ jobs:
         fi
 
         # Send file
-        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendDocument \
-          -F chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+        curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendDocument" \
+          -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
           -F document=@"$FILE" \
           -F caption="📦 *${DEVICE}* \`${{ github.event.inputs.BUILD_TARGET }}.img\`" \
-          -F parse_mode=MarkdownV2
+          -F parse_mode="MarkdownV2"
+

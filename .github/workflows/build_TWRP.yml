@@ -195,3 +195,11 @@ jobs:
         python3 ldcheck -p system/lib64:vendor/lib64:system/lib:vendor/lib -d ${{ github.event.inputs.LDCHECK }}
         echo "Done checking missing dependencies. Review, and reconfigure your tree."
       continue-on-error: true
+
+    - name: Send message to Telegram
+      run: |
+        MESSAGE="📦 New Release: ${{ github.event.release.name }}%0A🔗 ${{ github.event.release.html_url }}"
+        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
+          -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+          -d text="$MESSAGE" \
+          -d parse_mode=Markdown

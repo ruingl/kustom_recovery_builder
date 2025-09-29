@@ -7,3 +7,5 @@ In your repo :
 <br>then Add :</p>
 <li>TELEGRAM_TOKEN = your bot token.</li>
 <li>TELEGRAM_CHAT_ID = your chat ID.</li>
+<br>
+if you dont wanna push to telegram use <a href="https://github.com/naden01/kustom_recovery_builder/tree/main">main branch

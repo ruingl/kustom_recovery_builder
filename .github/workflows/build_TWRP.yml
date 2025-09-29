@@ -198,24 +198,12 @@ jobs:
 
     - name: Send release info to Telegram
       run: |
-        DEVICE="${{ github.event.inputs.DEVICE_NAME }}"
-        BRANCH="${{ github.event.inputs.MANIFEST_BRANCH }}"
-        BUILD_DATE="${{ env.BUILD_DATE }}"
-        COMMIT_ID="${{ env.COMMIT_ID }}"
-        RELEASE_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.run_id }}"
-
-        text=$(
-          cat << EOF
-🚀 *Unofficial TWRP Build Released*
-📱 *Device*: \`${DEVICE}\`
-🌿 *Branch*: \`${BRANCH}\`
-📅 *Build Date*: \`${BUILD_DATE}\`
-🔗 [View Release on GitHub](${RELEASE_URL})
-📝 *Commit*: [${COMMIT_ID}](${{ github.event.inputs.DEVICE_TREE }}/commit/${COMMIT_ID})
-EOF
-        )
-
-        curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
-          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-          -d text="$text" \
-          -d parse_mode="MarkdownV2"
+        .github/scripts/send_to_telegram.sh \
+          "${{ github.event.inputs.DEVICE_NAME }}" \
+          "${{ github.event.inputs.MANIFEST_BRANCH }}" \
+          "${{ env.BUILD_DATE }}" \
+          "${{ env.COMMIT_ID }}" \
+          "${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.run_id }}" \
+          "${{ github.event.inputs.DEVICE_TREE }}" \
+          "${{ secrets.TELEGRAM_CHAT_ID }}" \
+          "${{ secrets.TELEGRAM_TOKEN }}"

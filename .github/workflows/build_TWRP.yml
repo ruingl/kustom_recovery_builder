@@ -196,10 +196,39 @@ jobs:
         echo "Done checking missing dependencies. Review, and reconfigure your tree."
       continue-on-error: true
 
-    - name: Send message to Telegram
+    - name: Send release info + file to Telegram
       run: |
-        MESSAGE="📦 New Release: ${{ github.event.release.name }}%0A🔗 ${{ github.event.release.html_url }}"
+        DEVICE="${{ github.event.inputs.DEVICE_NAME }}"
+        BRANCH="${{ github.event.inputs.MANIFEST_BRANCH }}"
+        BUILD_DATE="${{ env.BUILD_DATE }}"
+        COMMIT_ID="${{ env.COMMIT_ID }}"
+        RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+        # Compose message
+        MESSAGE="📦 *Unofficial TWRP Build Released*\n\n🖥 Device: *$DEVICE*\n🌿 Branch: *$BRANCH*\n📅 Build Date: *$BUILD_DATE*\n🔗 [View Release]($RUN_URL)\n\nCommit: [$COMMIT_ID](${{ github.event.inputs.DEVICE_TREE }}/commit/$COMMIT_ID)"
+
+        # Send text first
         curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
           -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
           -d text="$MESSAGE" \
           -d parse_mode=Markdown
+
+        # Detect output image path
+        if [ "${{ github.event.inputs.BUILD_TARGET }}" = "vendorboot" ]; then
+          FILE="android-recovery/out/target/product/${DEVICE}/vendor_boot.img"
+        else
+          FILE="android-recovery/out/target/product/${DEVICE}/${{ github.event.inputs.BUILD_TARGET }}.img"
+        fi
+
+        # Send file if smaller than 50 MB, otherwise send only download link
+        FILESIZE=$(stat -c%s "$FILE")
+        if [ $FILESIZE -lt 50000000 ]; then
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendDocument \
+            -F chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+            -F document=@"$FILE" \
+            -F caption="📎 $DEVICE ${{ github.event.inputs.BUILD_TARGET }}.img"
+        else
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
+            -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+            -d text="⚠️ File too large for Telegram. Download from GitHub Release:\n${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.run_id }}"
+        fi

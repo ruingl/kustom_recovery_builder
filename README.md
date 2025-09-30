@@ -2,6 +2,7 @@
 build the damn recovery rahhhh
 
 <h1>Add Secrets to GitHub</h1>
+it only send massage not the files because it have 50mb limit for sending files <br> <br>
 In your repo :
 <p>Go to Settings → Secrets and variables → Actions → New repository secret.
 <br>then Add :</p>

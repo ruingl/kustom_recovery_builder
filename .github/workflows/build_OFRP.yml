@@ -155,3 +155,16 @@ jobs:
         python3 ldcheck -p system/lib64:vendor/lib64:system/lib:vendor/lib -d ${{ github.event.inputs.LDCHECKPATH }}
         echo "Done checking missing dependencies. Review, and reconfigure your tree."
       continue-on-error: true
+
+    - name: Send release info to Telegram
+      run: |
+       chmod +x .github/scripts/send_to_telegram.sh
+       .github/scripts/send_to_telegram.sh \
+       "${{ github.event.inputs.DEVICE_NAME }}" \
+       "${{ github.event.inputs.MANIFEST_BRANCH }}" \
+       "${{ env.BUILD_DATE }}" \
+       "${{ env.COMMIT_ID }}" \
+       "${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.run_id }}" \
+       "${{ github.event.inputs.DEVICE_TREE }}" \
+       "${{ secrets.TELEGRAM_CHAT_ID }}" \
+       "${{ secrets.TELEGRAM_TOKEN }}"

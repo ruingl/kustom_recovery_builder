@@ -58,14 +58,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-
-    - name: ogabuga
-      run: |
-        sudo apt install aria2 -y
-        git clone https://gitlab.com/OrangeFox/misc/scriptsssss
-        cd scripts
-        sudo bash setup/android_build_env.sh
-      continue-on-error: true
       
     - name: Clean-up
       uses: rokibhasansagar/slimhub_actions@main
@@ -184,24 +176,3 @@ jobs:
        "${{ secrets.TELEGRAM_CHAT_ID }}" \
        "${{ secrets.TELEGRAM_TOKEN }}"
       
-    - name: Send error log to Telegram
-      if: failure()
-      env:
-          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          BOT_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-      run: |
-          API_URL="https://api.telegram.org"
-
-          # Send error notification
-          curl -s -X POST "$API_URL/bot${BOT_TOKEN}/sendMessage" \
-            -d chat_id="$CHAT_ID" \
-            -d text="❌ *Build error* — check attached log" \
-            -d parse_mode="MarkdownV2"
-
-          # Send build log as file
-          if [ -f build.log ]; then
-            curl -s -X POST "$API_URL/bot${BOT_TOKEN}/sendDocument" \
-              -F chat_id="$CHAT_ID" \
-              -F document=@"build.log" \
-              -F caption="📝 Build log"
-          fi

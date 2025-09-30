@@ -58,7 +58,15 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-              
+
+    - name: ogabuga
+      run: |
+        sudo apt install aria2 -y
+        git clone https://gitlab.com/OrangeFox/misc/scriptsssss
+        cd scripts
+        sudo bash setup/android_build_env.sh
+      continue-on-error: true
+      
     - name: Clean-up
       uses: rokibhasansagar/slimhub_actions@main
 
@@ -70,7 +78,7 @@ jobs:
     - name: Build Environment
       run: |
         sudo apt install aria2 -y
-        git clone https://gitlab.com/OrangeFox/misc/scriptsogabuga
+        git clone https://gitlab.com/OrangeFox/misc/scripts
         cd scripts
         sudo bash setup/android_build_env.sh
       continue-on-error: true
@@ -175,7 +183,6 @@ jobs:
        "${{ github.event.inputs.DEVICE_TREE }}" \
        "${{ secrets.TELEGRAM_CHAT_ID }}" \
        "${{ secrets.TELEGRAM_TOKEN }}"
-      continue-on-error: true
       
     - name: Send error log to Telegram
       if: failure()

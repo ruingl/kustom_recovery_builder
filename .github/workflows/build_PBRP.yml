@@ -96,7 +96,8 @@ jobs:
         curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
         chmod a+x ~/bin/repo
         sudo ln -sf ~/bin/repo /usr/bin/repo
-
+      continue-on-error: true
+      
     - name: Initialize Repo
       run: |
         mkdir android-recovery
@@ -104,11 +105,13 @@ jobs:
         git config --global user.name "${{ github.actor }}"
         git config --global user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
         repo init --depth=1 -u https://github.com/naden01/manifest_pb -b ${{ github.event.inputs.MANIFEST_BRANCH }}
-        
+      continue-on-error: true
+      
     - name: Repo Sync
       run: |
         cd android-recovery
         repo sync -j$(nproc --all) --force-sync
+      continue-on-error: true
       
     - name: Clone Device Tree
       run: |
@@ -116,7 +119,8 @@ jobs:
         git clone ${{ github.event.inputs.DEVICE_TREE }} -b ${{ github.event.inputs.DEVICE_TREE_BRANCH }} ./${{ github.event.inputs.DEVICE_PATH }}
         cd ${{ github.event.inputs.DEVICE_PATH }}
         echo "COMMIT_ID=$(git rev-parse HEAD)" >> $GITHUB_ENV
-
+      continue-on-error: true
+      
     - name: Check Build Makefile
       run: |
         cd android-recovery
@@ -135,20 +139,22 @@ jobs:
         sudo apt -y install python2
         cd /usr/bin
         sudo ln -sf python2 python
-
+      continue-on-error: true
     - name: Fixed Missing Fonts
       run: |
         cd android-recovery
         cd external/noto-fonts/other
         wget https://github.com/cd-Crypton/custom-recovery-extras/raw/main/missing-font.zip
         unzip -o missing-font.zip
-
+      continue-on-error: true
+      
     - name: Building Image
       run: |
         cd android-recovery
         source build/envsetup.sh
         export ALLOW_MISSING_DEPENDENCIES=true
         lunch ${{ env.DEVICE_MAKEFILE }}-eng && make clean && make ${{ github.event.inputs.BUILD_TARGET }}image -j$(nproc --all)
+      continue-on-error: true
       
     - name: Set Build Date # Output will be use in Release
       run: |
@@ -167,7 +173,8 @@ jobs:
           Build: ${{ github.event.inputs.MANIFEST_BRANCH }}
           Device: [Device Tree/Branch](${{ github.event.inputs.DEVICE_TREE }}/tree/${{ github.event.inputs.DEVICE_TREE_BRANCH }})
           Commit: Most recent [commit](${{ github.event.inputs.DEVICE_TREE }}/commit/${{ env.COMMIT_ID }}) during building.
-
+      continue-on-error: true
+      
     - name: Upload to Release (if vendor_boot)
       if: github.event.inputs.BUILD_TARGET == 'vendorboot'
       uses: softprops/action-gh-release@v2
@@ -181,7 +188,8 @@ jobs:
           Build: ${{ github.event.inputs.MANIFEST_BRANCH }}
           Device: [Device Tree/Branch](${{ github.event.inputs.DEVICE_TREE }}/tree/${{ github.event.inputs.DEVICE_TREE_BRANCH }})
           Commit: Most recent [commit](${{ github.event.inputs.DEVICE_TREE }}/commit/${{ env.COMMIT_ID }}) during building.
-
+      continue-on-error: true
+      
     - name: Run LDCheck (Only if LDCHECK was set to check.)
       if: github.event.inputs.LDCHECK == 'check'
       run: |
@@ -192,3 +200,16 @@ jobs:
         python3 ldcheck -p system/lib64:vendor/lib64:system/lib:vendor/lib -d ${{ github.event.inputs.LDCHECK }}
         echo "Done checking missing dependencies. Review, and reconfigure your tree."
       continue-on-error: true
+
+    - name: Send release info to Telegram
+      run: |
+       chmod +x .github/scripts/send_to_telegram.sh
+       .github/scripts/send_to_telegram.sh \
+       "${{ github.event.inputs.DEVICE_NAME }}" \
+       "${{ github.event.inputs.MANIFEST_BRANCH }}" \
+       "${{ env.BUILD_DATE }}" \
+       "${{ env.COMMIT_ID }}" \
+       "${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.run_id }}" \
+       "${{ github.event.inputs.DEVICE_TREE }}" \
+       "${{ secrets.TELEGRAM_CHAT_ID }}" \
+       "${{ secrets.TELEGRAM_TOKEN }}"

@@ -101,8 +101,8 @@ jobs:
       id: manifest
       with:
         cond: ${{ github.event.inputs.MANIFEST_BRANCH == 'twrp-11' || github.event.inputs.MANIFEST_BRANCH == 'shrp-12.1' }}
-        if_true: https://github.com/naden01/manifest-sh.git
-        if_false: https://github.com/naden01/manifest-sh.git
+        if_true: https://github.com/naden01/manifest.git
+        if_false: https://github.com/naden01/manifest.git
       continue-on-error: true
       
     - name: Initialize Repo

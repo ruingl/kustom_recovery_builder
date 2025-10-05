@@ -30,7 +30,7 @@ send_file() {
 # === Send massage ===
 text=$(
   cat << EOF
-🚀 *Unofficial TWRP Build Released*
+🚀 *Unofficial Custom Recovery Build Released*
 📱 *Device*: \`${DEVICE}\`
 🌿 *Branch*: \`${BRANCH}\`
 📅 *Build Date*: \`${BUILD_DATE}\`
